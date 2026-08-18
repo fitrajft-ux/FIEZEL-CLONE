@@ -1,0 +1,39 @@
+name: FIEZEL CLONE Pages Live Verify
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: Verify deployed clone shell
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify live GitHub Pages artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://fitrajft-ux.github.io/FIEZEL-CLONE'
+          for attempt in $(seq 1 30); do
+            echo "Pages verification attempt ${attempt}/30"
+            if curl -fsSL --connect-timeout 10 --max-time 30 "$base/" -o /tmp/index.html \
+              && curl -fsSL --connect-timeout 10 --max-time 30 "$base/manifest.json" -o /tmp/manifest.json \
+              && curl -fsSL --connect-timeout 10 --max-time 30 "$base/sw.js" -o /tmp/sw.js \
+              && curl -fsSL --connect-timeout 10 --max-time 30 "$base/app.js" -o /tmp/app.js; then
+              if grep -Fq '"name": "FIEZEL CLONE"' /tmp/manifest.json \
+                && grep -Fq 'fiezel-clone-v${self.FIEZEL_VERSION}' /tmp/sw.js \
+                && grep -Fq 'fiezel-clone-shell-${SW_REV}' /tmp/sw.js \
+                && grep -Fq "'fiezel-clone-v4-state'" /tmp/app.js; then
+                echo 'LIVE_CLONE_VERIFY_OK'
+                exit 0
+              fi
+            fi
+            sleep 10
+          done
+          echo 'LIVE_CLONE_VERIFY_FAILED' >&2
+          exit 1
