@@ -34,7 +34,7 @@ jobs:
           ref: f2a161d3a3c00d27d191ac40cc047e9eba5aefe1
           fetch-depth: 1
           path: upstream
-      - name: Verify immutable recovery baseline
+      - name: Verify immutable recovery baseline and overlay
         shell: bash
         run: |
           set -euo pipefail
@@ -42,7 +42,10 @@ jobs:
           test "$actual" = 'f2a161d3a3c00d27d191ac40cc047e9eba5aefe1'
           test "$(git -C upstream hash-object sw.js)" = 'f4033d3fb6d91e1a235c001526267ddbf2973d82'
           test "$(git -C upstream hash-object app.js)" = 'e7913ad8ddbad3a52c83d2f0e7bfd7bebe76b55c'
-          base64 -d control/recovery-overlay.patch.gz.b64 | gunzip > /tmp/recovery-overlay.patch
+          test "$(find control/recovery-overlay -type f -name 'part*.b64' | wc -l)" -eq 8
+          cat control/recovery-overlay/part*.b64 | tr -d '\r\n' | base64 -d | gunzip > /tmp/recovery-overlay.patch
+          test "$(wc -c < /tmp/recovery-overlay.patch)" -eq 82784
+          echo '524be94559d77df58b63e38389ee6005e34d4a022858a7fcfbc49c5666c6442d  /tmp/recovery-overlay.patch' | sha256sum -c -
       - name: Materialize isolated recovery tree
         shell: bash
         run: |
