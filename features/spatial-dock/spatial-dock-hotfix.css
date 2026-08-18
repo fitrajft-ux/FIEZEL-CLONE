@@ -1,0 +1,60 @@
+/* m025-31 regression hotfix: keep all five Spatial Dock actions visibly identifiable on iPhone. */
+html.fiezel-spatial-v1 .bottomnav{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+}
+html.fiezel-spatial-v1 .bottomnav .nav{
+  min-width:0;
+  overflow:visible;
+}
+html.fiezel-spatial-v1 .bottomnav .nav span{
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+html.fiezel-spatial-v1 .bottomnav .nav svg,
+html.fiezel-spatial-v1 .bottomnav .nav [data-lucide]{
+  display:block;
+  width:19px;
+  height:19px;
+  min-width:19px;
+  min-height:19px;
+}
+@media(max-width:620px){
+  html.fiezel-spatial-v1 .bottomnav .nav{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+    padding:4px 1px;
+    font-size:.52rem;
+    line-height:1.05;
+  }
+  html.fiezel-spatial-v1 .bottomnav .nav span{display:block!important}
+}
+.sd-id-voice-control{
+  margin-top:7px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.sd-id-voice-control button{
+  border:1px solid rgba(40,103,216,.18);
+  background:#fff;
+  color:#1c4f9f;
+  border-radius:10px;
+  padding:7px 9px;
+  font-size:.62rem;
+  font-weight:800;
+}
+.sd-id-voice-control small{
+  color:#65758a;
+  font-size:.58rem;
+  line-height:1.3;
+  letter-spacing:0;
+}
+.sd-id-voice-control[data-ready="true"] small{color:#20745c}
