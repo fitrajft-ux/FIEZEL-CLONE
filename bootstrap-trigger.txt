@@ -1,1 +1,1 @@
-Trigger the OWNER-directed FIEZEL CLONE R1 materialization run. This file is temporary and exists only to make the recovery workflow observable through a pull-request event.
+Trigger the OWNER-directed FIEZEL CLONE R1 materialization run. Retry 2 uses the checksummed eight-part recovery overlay transport after the single-file base64 transport was proven truncated.
