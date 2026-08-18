@@ -17,8 +17,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      materialized: ${{ steps.lock.outputs.materialized }}
+    steps:
+      - name: Checkout candidate metadata
+        uses: actions/checkout@v6
+      - name: Detect materialized clone source
+        id: lock
+        shell: bash
+        run: |
+          if [ -f FIEZEL-CLONE-SOURCE-LOCK.json ]; then
+            echo 'materialized=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'materialized=false' >> "$GITHUB_OUTPUT"
+          fi
+
   quality:
-    if: hashFiles('FIEZEL-CLONE-SOURCE-LOCK.json') != ''
+    needs: detect
+    if: needs.detect.outputs.materialized == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -69,8 +87,8 @@ jobs:
           test ! -e .github/workflows/deploy-core-worker.yml
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && hashFiles('FIEZEL-CLONE-SOURCE-LOCK.json') != ''
-    needs: quality
+    needs: [detect, quality]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.detect.outputs.materialized == 'true' && needs.quality.result == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
