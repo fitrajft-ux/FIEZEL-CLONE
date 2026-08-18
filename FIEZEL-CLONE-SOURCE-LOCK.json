@@ -1,0 +1,48 @@
+{
+  "schema": "fiezel-clone-source-lock-v1",
+  "baselineCommit": "f2a161d3a3c00d27d191ac40cc047e9eba5aefe1",
+  "files": {
+    "features/neural-voice/fiezel-neural-voice.js": {
+      "sha256": "9551a825074e4475f1d880daab0f7ec659df4b7421e41dedf79f8d3aa0cd21e2",
+      "bytes": 16582,
+      "cloneSha256": "ffa7e58a682ebb5b37462dc689f50cd109f658bdd0f497a34db75333e6df3f41",
+      "cloneBytes": 16588
+    },
+    "features/neural-voice/fiezel-kokoro-adapter.js": {
+      "sha256": "810bc072604029e3eab8130e24110e4476469b6567d80d426be933b33e4d2aa8",
+      "bytes": 13638,
+      "cloneSha256": "810bc072604029e3eab8130e24110e4476469b6567d80d426be933b33e4d2aa8",
+      "cloneBytes": 13638
+    },
+    "features/neural-voice/fiezel-sherpa-vits-adapter.js": {
+      "sha256": "2f1e552ad925dc148a56b3af37be596368f0f14adb048ca14fbb8b34808581b5",
+      "bytes": 10617,
+      "cloneSha256": "2f1e552ad925dc148a56b3af37be596368f0f14adb048ca14fbb8b34808581b5",
+      "cloneBytes": 10617
+    },
+    "features/neural-voice/fiezel-web-audio-player.js": {
+      "sha256": "a7d6c82df9c95602aef83943658b96519a0b09a1217997dce0937cdb0d8ca16f",
+      "bytes": 4638,
+      "cloneSha256": "a7d6c82df9c95602aef83943658b96519a0b09a1217997dce0937cdb0d8ca16f",
+      "cloneBytes": 4638
+    },
+    "features/speaking-listening/fiezel-speaking-listening-addon.js": {
+      "sha256": "9ad88d182d18d8446936250205776b39de0c45deafe7d21603a8994c1d9f3527",
+      "bytes": 26847,
+      "cloneSha256": "9ad88d182d18d8446936250205776b39de0c45deafe7d21603a8994c1d9f3527",
+      "cloneBytes": 26847
+    },
+    "features/speaking-listening/listening-bank-v1.json": {
+      "sha256": "2b643155f0abde63b8eb54e7f382404e7f961b9bb8c83551bbf5d952f6ccd4bc",
+      "bytes": 32518,
+      "cloneSha256": "2b643155f0abde63b8eb54e7f382404e7f961b9bb8c83551bbf5d952f6ccd4bc",
+      "cloneBytes": 32518
+    },
+    "features/speaking-listening/speaking-bank-v1.json": {
+      "sha256": "ea7fba78c04186debffd48984fbe0132915bca7f67c0fce55c6694228090bca6",
+      "bytes": 36633,
+      "cloneSha256": "ea7fba78c04186debffd48984fbe0132915bca7f67c0fce55c6694228090bca6",
+      "cloneBytes": 36633
+    }
+  }
+}
