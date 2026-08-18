@@ -8,6 +8,8 @@ const HOTFIX=fs.readFileSync('features/spatial-dock/spatial-dock-hotfix.js','utf
 const HOTFIX_CSS=fs.readFileSync('features/spatial-dock/spatial-dock-hotfix.css','utf8');
 const IDVOICE=fs.readFileSync('features/neural-voice/fiezel-indonesian-voice-bridge.js','utf8');
 const LUCIDE=fs.readFileSync('lucide.min.js','utf8');
+const stripComments=src=>src.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
+const IDVOICE_CODE=stripComments(IDVOICE);
 
 // 1. The iPhone dock must expose five identifiable actions, not blank tap zones.
 for(const label of ['Home','Learn','Tutor','Evidence','Me']) assert.ok(DOCK.includes('>'+label+'</span>'),`dock label ${label} missing`);
@@ -27,7 +29,7 @@ assert.match(IDVOICE,/MODEL_ID='vits-piper-id_ID-news_tts-medium'/,'Indonesian n
 assert.match(IDVOICE,/language:'id-ID'/,'status must identify Indonesian');
 assert.match(IDVOICE,/lang:'id-ID'/,'speech request must identify Indonesian');
 assert.match(IDVOICE,/allowFallback:false/,'Indonesian neural speech must never degrade to browser TTS');
-assert.ok(!/speechSynthesis|SpeechSynthesisUtterance/.test(IDVOICE),'browser TTS is forbidden in the Indonesian bridge');
+assert.ok(!/speechSynthesis|SpeechSynthesisUtterance/.test(IDVOICE_CODE),'browser TTS is forbidden in executable Indonesian bridge code');
 assert.match(IDVOICE,/totalBytes:TOTAL_BYTES/,'bundle size must be exposed to UI/status');
 for(const bytes of ['109876','33227','2677','13474133','80939086']) assert.ok(IDVOICE.includes('bytes:'+bytes),`asset byte pin ${bytes} missing`);
 assert.match(HOTFIX,/sdSubtitle/,'Classroom speech must read the authored Indonesian tutor line');
