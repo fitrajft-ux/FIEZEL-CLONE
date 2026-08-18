@@ -1,6 +1,7 @@
 const fs=require('fs'),path=require('path'),cp=require('child_process');
 const root=__dirname,read=f=>fs.readFileSync(path.join(root,f),'utf8');
-const app=read('app.js'),sw=read('sw.js'),idx=read('index.html'),cfg=read('core-config.js'),worker=read('fiezel-core-worker.js'),dispatcher=read('push-dispatcher.mjs'),workflow=read('.github/workflows/push-reminders.yml'),pkg=JSON.parse(read('package.json'));
+const pushWorkflowContract=fs.existsSync(path.join(root,'.github/fixtures/push-reminders.yml'))?'.github/fixtures/push-reminders.yml':'.github/workflows/push-reminders.yml';
+const app=read('app.js'),sw=read('sw.js'),idx=read('index.html'),cfg=read('core-config.js'),worker=read('fiezel-core-worker.js'),dispatcher=read('push-dispatcher.mjs'),workflow=read(pushWorkflowContract),pkg=JSON.parse(read('package.json'));
 const workerUrl=(cfg.match(/workerUrl:'([^']*)'/)||[])[1]||'';
 const deploymentState=(cfg.match(/deploymentState:'([^']*)'/)||[])[1]||'';
 const deploymentConfigValid=(workerUrl===''&&deploymentState==='unconfigured')||(/^https:\/\/[a-z0-9-]+\.puter\.work$/i.test(workerUrl)&&deploymentState==='validated');
@@ -24,4 +25,4 @@ const checks={
 let generated={};try{generated=JSON.parse(cp.execFileSync(process.execPath,[path.join(root,'generate-push-secrets.mjs')],{encoding:'utf8'}));}catch{}
 checks.secretGenerator=typeof generated.VAPID_PUBLIC_KEY==='string'&&generated.VAPID_PUBLIC_KEY.length>=80&&typeof generated.VAPID_PRIVATE_KEY==='string'&&generated.VAPID_PRIVATE_KEY.length>=40&&typeof generated.FIEZEL_REMINDER_CRON_TOKEN==='string'&&generated.FIEZEL_REMINDER_CRON_TOKEN.length>=40;
 const failed=Object.entries(checks).filter(([,v])=>!v).map(([k])=>k);if(failed.length){console.error(JSON.stringify({status:'FAIL',failed,checks},null,2));process.exit(1)}
-console.log('FIEZEL remote push architecture: PASS');console.log(JSON.stringify({status:'PASS',checks,liveDeploymentConfigured:workerUrl!==''&&deploymentState==='validated'}));
+console.log('FIEZEL remote push architecture: PASS');console.log(JSON.stringify({status:'PASS',checks,liveDeploymentConfigured:workerUrl!==''&&deploymentState==='validated',contractSource:pushWorkflowContract}));
