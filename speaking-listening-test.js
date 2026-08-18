@@ -14,7 +14,9 @@ let pass=0;
 function test(name,fn){fn();pass++;console.log('PASS',name)}
 function hash(file){return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')}
 const levels=['A1','A2','B1','B2','C1','C2'];
-const voices=['af_nicole','am_michael','bf_emma','bm_george'];
+// Synced to reviewed FIEZEL-APPS main 626340630e28358c5757484535a2c0fc0e62eee8.
+// Listening items intentionally use the primary/alternate local neural voices.
+const voices=['af_bella','af_heart'];
 
 test('runtime schema',()=>assert.equal(runtime.schema,'fiezel-speaking-listening-addon-v1'));
 test('listening bank reviewed v2 seed',()=>assert.deepStrictEqual([listening.schema,listening.version,listening.status,listening.count],['fiezel-listening-bank-v1',2,'reviewed_release_seed',36]));
@@ -23,7 +25,7 @@ test('all IDs unique',()=>assert.equal(new Set([...listening.items,...speaking.i
 test('six items per level per domain',()=>{for(const level of levels){assert.equal(listening.items.filter(item=>item.level===level).length,6);assert.equal(speaking.items.filter(item=>item.level===level).length,6)}});
 test('two items per listening mode and level',()=>{for(const level of levels)for(const mode of ['gist','detail','dictation'])assert.equal(listening.items.filter(item=>item.level===level&&item.mode===mode).length,2)});
 test('two items per speaking mode and level',()=>{for(const level of levels)for(const mode of ['repeat_target','guided_response','roleplay'])assert.equal(speaking.items.filter(item=>item.level===level&&item.mode===mode).length,2)});
-test('listening voices use locked pool',()=>assert.ok(listening.items.every(item=>voices.includes(item.voice)&&item.audioProfile==='listening')));
+test('listening voices use APPS main reviewed pool',()=>assert.ok(listening.items.every(item=>voices.includes(item.voice)&&item.audioProfile==='listening')));
 test('listening MCQ answer integrity',()=>assert.ok(listening.items.filter(item=>item.mode!=='dictation').every(item=>item.options.length===4&&new Set(item.options).size===4&&Number.isInteger(item.answerIndex)&&item.answerIndex>=0&&item.answerIndex<4)));
 test('dictation target integrity',()=>assert.ok(listening.items.filter(item=>item.mode==='dictation').every(item=>item.answerText===item.script&&item.scoring.metric==='token_f1')));
 test('raw listening response persistence forbidden',()=>assert.ok(listening.items.every(item=>item.privacy.rawLearnerResponseRequiredForPersistence===false)));
