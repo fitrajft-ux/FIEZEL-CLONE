@@ -4,15 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#57a8df">
-  <meta name="description" content="FIEZEL adalah aplikasi belajar bahasa Inggris adaptif untuk vocabulary, grammar, reading, speaking, listening, dan tes diagnostik CEFR.">
+  <meta name="description" content="FIEZEL adalah aplikasi belajar bahasa Inggris adaptif untuk vocabulary, grammar, reading, speaking, listening, Classroom, dan tes diagnostik CEFR.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="./favicon-64.png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <title>FIEZEL | Adaptive English</title>
+  <title>FIEZEL | Personal English OS</title>
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./features/speaking-listening/speaking-listening-addon.css">
+  <link rel="stylesheet" href="./features/spatial-dock/spatial-dock.css">
 </head>
 <body class="scene-day">
   <div id="globalSky" class="global-sky phase-day" aria-hidden="true">
@@ -80,12 +81,14 @@
   <script src="./features/neural-voice/fiezel-neural-voice-ios-cache-fix.js"></script>
   <script src="./features/neural-voice/fiezel-neural-voice-cache-integrity-repair.js"></script>
   <script src="./features/neural-voice/fiezel-neural-voice-audibility-fix.js"></script>
-  <!-- Sengaja dimuat sebelum app.js: kalau app.js throw, tombol Diagnostics tetap ada. -->
+  <!-- Diagnostics tetap pre-app agar recovery surface tersedia bila app.js gagal. -->
   <script src="./features/neural-voice/fiezel-diag-panel.js"></script>
   <script src="./features/neural-voice/fiezel-pipeline-device-probe.js"></script>
+  <script src="./features/classroom/fiezel-classroom.js"></script>
   <script src="./features/speaking-listening/speaking-listening-config.js"></script>
   <script src="./features/speaking-listening/fiezel-speaking-listening-addon.js"></script>
   <script src="./app.js"></script>
+  <script src="./features/spatial-dock/spatial-dock.js"></script>
   <script>
     /* FIEZEL_REPORT_GESTURE_ISOLATION_START */
     (() => {
@@ -94,31 +97,22 @@
       const baseMaybeSendAccessReport = maybeSendAccessReport;
 
       function creatorReportAuthReadyForAutomatic() {
-        try {
-          return typeof puter !== 'undefined' && !!puter?.authToken && puter?.auth?.isSignedIn?.() === true;
-        } catch {
-          return false;
-        }
+        try { return typeof puter !== 'undefined' && !!puter?.authToken && puter?.auth?.isSignedIn?.() === true; }
+        catch { return false; }
       }
-
       function deferAutomaticReport(task) {
         return new Promise(resolve => {
           setTimeout(() => {
-            try {
-              Promise.resolve(task()).then(resolve, () => resolve(false));
-            } catch {
-              resolve(false);
-            }
+            try { Promise.resolve(task()).then(resolve, () => resolve(false)); }
+            catch { resolve(false); }
           }, 0);
         });
       }
-
       flushReportQueue = function({ allowInteractiveAuth = false } = {}) {
         if (allowInteractiveAuth) return baseFlushReportQueue();
         if (!creatorReportAuthReadyForAutomatic()) return Promise.resolve(false);
         return deferAutomaticReport(() => baseFlushReportQueue());
       };
-
       sendCreatorReport = async function(reason = 'manual', force = false, { allowInteractiveAuth = (reason === 'manual' || reason === 'consent_enabled') } = {}) {
         if (allowInteractiveAuth) return baseSendCreatorReport(reason, force);
         if (!creatorReportAuthReadyForAutomatic()) {
@@ -129,21 +123,17 @@
         }
         return deferAutomaticReport(() => baseSendCreatorReport(reason, force));
       };
-
       maybeSendAccessReport = function({ allowInteractiveAuth = false } = {}) {
         if (allowInteractiveAuth) return baseMaybeSendAccessReport();
         if (!creatorReportAuthReadyForAutomatic()) return Promise.resolve(false);
         return deferAutomaticReport(() => baseMaybeSendAccessReport());
       };
-
       globalThis.creatorReportAuthReadyForAutomatic = creatorReportAuthReadyForAutomatic;
     })();
     /* FIEZEL_REPORT_GESTURE_ISOLATION_END */
   </script>
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
-    }
+    if ('serviceWorker' in navigator) serviceWorker.register('./sw.js').catch(() => {});
   </script>
 </body>
 </html>
