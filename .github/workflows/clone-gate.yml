@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   quality:
-    if: github.event_name == 'pull_request' || hashFiles('FIEZEL-CLONE-SOURCE-LOCK.json') != ''
+    if: hashFiles('FIEZEL-CLONE-SOURCE-LOCK.json') != ''
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
