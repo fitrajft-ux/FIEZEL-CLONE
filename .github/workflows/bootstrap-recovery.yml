@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/bootstrap-recovery.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'bootstrap-trigger.txt'
   workflow_dispatch:
 
 permissions:
