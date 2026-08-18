@@ -1,0 +1,96 @@
+name: FIEZEL CLONE Recovery Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: fiezel-clone-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    if: github.event_name == 'pull_request' || hashFiles('FIEZEL-CLONE-SOURCE-LOCK.json') != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned dependencies
+        run: npm install --ignore-scripts
+      - name: Syntax audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find . -type f \( -name '*.js' -o -name '*.mjs' \) \
+            -not -path './node_modules/*' \
+            -not -path './vendor/*' \
+            -print0)
+      - name: Execute canonical Quality commands
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t commands < <(sed -n '/- name: Core validation/,$p' .github/workflows/quality.yml | sed -n 's/^[[:space:]]*\(node .*$\)/\1/p')
+          test "${#commands[@]}" -ge 56
+          for cmd in "${commands[@]}"; do
+            echo "::group::$cmd"
+            timeout 120s bash -lc "$cmd"
+            echo "::endgroup::"
+          done
+      - name: Recovery invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          node clone-recovery-regression-test.js
+          ! grep -R --include='*.js' -nE 'FiezelVoiceRuntime[[:space:]]*=[[:space:]]*new[[:space:]]+Proxy' features
+          test ! -e features/tutor-classroom/fiezel-tutor-indonesian-voice-fix.js
+          grep -q 'fiezel-clone-v' sw.js
+          grep -q 'fiezel-clone-v4-state' app.js
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && hashFiles('FIEZEL-CLONE-SOURCE-LOCK.json') != ''
+    needs: quality
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout tested source
+        uses: actions/checkout@v6
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+      - name: Build static Pages artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          rsync -a ./ _site/ \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'node_modules/' \
+            --exclude '_site/'
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
