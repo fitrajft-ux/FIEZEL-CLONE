@@ -8,6 +8,7 @@ const HOTFIX=fs.readFileSync('features/spatial-dock/spatial-dock-hotfix.js','utf
 const HOTFIX_CSS=fs.readFileSync('features/spatial-dock/spatial-dock-hotfix.css','utf8');
 const IDVOICE=fs.readFileSync('features/neural-voice/fiezel-indonesian-voice-bridge.js','utf8');
 const LUCIDE=fs.readFileSync('lucide.min.js','utf8');
+const SW=fs.readFileSync('sw.js','utf8');
 const stripComments=src=>src.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\/\/[^\n]*/g,'');
 const IDVOICE_CODE=stripComments(IDVOICE);
 
@@ -35,5 +36,15 @@ for(const bytes of ['109876','33227','2677','13474133','80939086']) assert.ok(ID
 assert.match(HOTFIX,/sdSubtitle/,'Classroom speech must read the authored Indonesian tutor line');
 assert.match(HOTFIX,/Download suara Indonesia · 95 MB/,'Classroom must expose explicit Indonesian bundle download control');
 assert.match(HOTFIX,/indo\.speak\(spoken/,'prepared Classroom speech must route through Indonesian neural service');
+
+// 3. Installed PWA must retain this repair and the optional model across shell releases.
+for(const asset of [
+  './features/neural-voice/fiezel-indonesian-voice-bridge.js',
+  './features/spatial-dock/spatial-dock-hotfix.css',
+  './features/spatial-dock/spatial-dock-hotfix.js'
+]) assert.ok(SW.includes("'"+asset+"'"),`hotfix shell asset not precached: ${asset}`);
+assert.match(SW,/SW_REV='m025-30-hotfix-taskbar-id-voice-20260819-1'/,'hotfix must have a distinct shell revision');
+assert.match(SW,/sherpa-vits-id/,'optional Indonesian neural bundle must be classified by the stable neural cache path');
+assert.match(SW,/const CACHE=`fiezel-clone-v\$\{self\.FIEZEL_VERSION\}`/,'stable neural cache identity must remain unchanged');
 
 console.log('FIEZEL m025-31 Spatial Dock + Indonesian neural voice regression: PASS');
