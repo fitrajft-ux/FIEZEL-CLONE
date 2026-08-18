@@ -18,11 +18,7 @@
     var me=nav.querySelector('[data-sd-nav="me"] [data-lucide]');
     if(learn&&learn.tagName&&learn.tagName.toLowerCase()==='i')learn.setAttribute('data-lucide','book-a');
     if(me&&me.tagName&&me.tagName.toLowerCase()==='i')me.setAttribute('data-lucide','settings-2');
-    nav.querySelectorAll('.nav').forEach(function(button){
-      button.style.visibility='visible';
-      button.style.opacity='1';
-      var label=button.querySelector('span');if(label)label.style.display='block';
-    });
+    nav.querySelectorAll('.nav').forEach(function(button){var label=button.querySelector('span');if(label)label.style.display='block';});
     icons();
   }
 
