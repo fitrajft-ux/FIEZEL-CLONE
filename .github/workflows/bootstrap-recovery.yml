@@ -1,0 +1,117 @@
+name: Materialize FIEZEL CLONE R1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bootstrap-recovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout clone control plane
+        uses: actions/checkout@v6
+        with:
+          path: control
+      - name: Checkout clone candidate branch base
+        uses: actions/checkout@v6
+        with:
+          path: candidate
+      - name: Checkout byte-matched known-good upstream
+        uses: actions/checkout@v6
+        with:
+          repository: fitrajft-ux/FIEZEL-APPS
+          ref: f2a161d3a3c00d27d191ac40cc047e9eba5aefe1
+          fetch-depth: 1
+          path: upstream
+      - name: Verify immutable recovery baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git -C upstream rev-parse HEAD)"
+          test "$actual" = 'f2a161d3a3c00d27d191ac40cc047e9eba5aefe1'
+          test "$(git -C upstream hash-object sw.js)" = 'f4033d3fb6d91e1a235c001526267ddbf2973d82'
+          test "$(git -C upstream hash-object app.js)" = 'e7913ad8ddbad3a52c83d2f0e7bfd7bebe76b55c'
+          base64 -d control/recovery-overlay.patch.gz.b64 | gunzip > /tmp/recovery-overlay.patch
+      - name: Materialize isolated recovery tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a --delete --exclude='.git/' upstream/ candidate/
+          mkdir -p candidate/.github/workflows
+          cp control/.github/workflows/clone-gate.yml candidate/.github/workflows/clone-gate.yml
+          cd candidate
+          git apply --check /tmp/recovery-overlay.patch
+          git apply /tmp/recovery-overlay.patch
+          test -f FIEZEL-CLONE-SOURCE-LOCK.json
+          test -f clone-recovery-regression-test.js
+          test ! -e features/tutor-classroom/fiezel-tutor-indonesian-voice-fix.js
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned dependencies
+        working-directory: candidate
+        run: npm install --ignore-scripts
+      - name: Syntax audit
+        working-directory: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find . -type f \( -name '*.js' -o -name '*.mjs' \) \
+            -not -path './node_modules/*' \
+            -not -path './vendor/*' \
+            -print0)
+      - name: Run all canonical Quality tests
+        working-directory: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t commands < <(sed -n '/- name: Core validation/,$p' .github/workflows/quality.yml | sed -n 's/^[[:space:]]*\(node .*$\)/\1/p')
+          echo "Quality commands: ${#commands[@]}"
+          test "${#commands[@]}" -ge 56
+          for cmd in "${commands[@]}"; do
+            echo "::group::$cmd"
+            timeout 120s bash -lc "$cmd"
+            echo "::endgroup::"
+          done
+      - name: Enforce recovery architecture
+        working-directory: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node clone-recovery-regression-test.js
+          ! grep -R --include='*.js' -nE 'FiezelVoiceRuntime[[:space:]]*=[[:space:]]*new[[:space:]]+Proxy' features
+          test ! -e features/tutor-classroom/fiezel-tutor-indonesian-voice-fix.js
+          grep -q 'fiezel-clone-v' sw.js
+          grep -q 'fiezel-clone-v4-state' app.js
+      - name: Commit exact tested recovery tree
+        working-directory: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf node_modules
+          git config user.name 'FIEZEL Recovery Bot'
+          git config user.email 'recovery-bot@users.noreply.github.com'
+          git add -A
+          git commit -m 'FIEZEL CLONE R1: recover known-good neural baseline with isolated state and cache'
+          echo "RECOVERY_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Push tested recovery branch
+        working-directory: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push --force origin HEAD:refs/heads/recovery-r1
+          echo "Materialized recovery head: $RECOVERY_HEAD"
