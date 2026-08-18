@@ -1,0 +1,102 @@
+name: FIEZEL CLONE Authority A6 A7
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: fiezel-clone-verifiers-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  authority:
+    name: FIEZEL CLONE Authority Guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify OWNER recovery boundary
+        shell: bash
+        env:
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.event.pull_request.user.login }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          test "$REPO" = 'fitrajft-ux/FIEZEL-CLONE'
+          test "$ACTOR" = 'fitrajft-ux'
+          test "$HEAD_REF" = 'recovery-r1'
+          test "$BASE_REF" = 'main'
+
+  a6:
+    name: A6 Clone Automated Verification
+    needs: authority
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned dependencies
+        run: npm install --ignore-scripts
+      - name: Verify recovery architecture and focused regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node clone-recovery-regression-test.js
+          node neural-voice-test.js
+          node neural-voice-audibility-test.js
+          node neural-voice-single-flight-test.js
+          node speaking-listening-test.js
+          node pwa-cache-test.js
+          node pwa-release-coherence-test.js
+          node pwa-startup-white-screen-recovery-test.js
+          node remote-push-test.js
+          node puter-auth-coop-test.js
+          ! grep -R --include='*.js' -nE 'FiezelVoiceRuntime[[:space:]]*=[[:space:]]*new[[:space:]]+Proxy' features
+          test ! -e features/tutor-classroom/fiezel-tutor-indonesian-voice-fix.js
+          node - <<'NODE'
+          const fs=require('fs'),assert=require('assert');
+          const lock=JSON.parse(fs.readFileSync('FIEZEL-CLONE-SOURCE-LOCK.json','utf8'));
+          assert.equal(lock.baselineCommit,'f2a161d3a3c00d27d191ac40cc047e9eba5aefe1');
+          NODE
+
+  a7:
+    name: A7 Clone Release Safety
+    needs: a6
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify ancestry, isolation and deploy readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --no-tags
+          git merge-base --is-ancestor origin/main HEAD
+          git merge-tree --write-tree origin/main HEAD >/tmp/merge-tree.txt
+          test -s /tmp/merge-tree.txt
+
+          test -f FIEZEL-CLONE-SOURCE-LOCK.json
+          test -f .github/workflows/clone-gate.yml
+          test -f .github/workflows/quality.yml
+          test -f .github/fixtures/push-reminders.yml
+          test ! -e .github/workflows/push-reminders.yml
+          test ! -e .github/workflows/deploy-core-worker.yml
+
+          grep -F 'fiezel-clone-v${self.FIEZEL_VERSION}' sw.js
+          grep -F 'fiezel-clone-shell-${SW_REV}' sw.js
+          grep -F "'fiezel-clone-v4-state'" app.js
+          grep -F '"name": "FIEZEL CLONE"' manifest.json
+
+          test "$(stat -c%s vendor/kokoro-model/onnx/model_quantized.onnx)" = '92361116'
+          test "$(stat -c%s vendor/kokoro-js/wasm/ort-wasm-simd-threaded.jsep.wasm)" = '21596019'
+          test "$(stat -c%s vendor/sherpa-vits/sherpa-onnx-wasm-main-tts.data)" = '96522474'
+          test "$(stat -c%s vendor/sherpa-vits/sherpa-onnx-wasm-main-tts.wasm)" = '13474025'
