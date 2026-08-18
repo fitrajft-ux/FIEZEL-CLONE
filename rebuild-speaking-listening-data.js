@@ -7,7 +7,8 @@ const listeningPath=path.join(feature,'listening-bank-v1.json');
 const speakingPath=path.join(feature,'speaking-bank-v1.json');
 const listening=JSON.parse(fs.readFileSync(listeningPath,'utf8'));
 const speaking=JSON.parse(fs.readFileSync(speakingPath,'utf8'));
-const voices=['af_nicole','am_michael','bf_emma','bm_george'];
+// Synced to reviewed FIEZEL-APPS main 626340630e28358c5757484535a2c0fc0e62eee8.
+const voices=['af_bella','af_heart'];
 const minimumWords={A1:4,A2:6,B1:8,B2:10,C1:12,C2:14};
 const concepts={
   speak_0003:[['like','love','enjoy','favorite'],['because','since']],
