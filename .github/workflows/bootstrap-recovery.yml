@@ -104,6 +104,19 @@ jobs:
           test ! -e features/tutor-classroom/fiezel-tutor-indonesian-voice-fix.js
           grep -q 'fiezel-clone-v' sw.js
           grep -q 'fiezel-clone-v4-state' app.js
+      - name: Freeze tested Quality manifest and restore clone control workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp candidate/.github/workflows/quality.yml candidate/recovery-quality.yml
+          rm -rf candidate/.github/workflows
+          mkdir -p candidate/.github/workflows
+          cp -a control/.github/workflows/. candidate/.github/workflows/
+          test -f candidate/recovery-quality.yml
+          test -f candidate/.github/workflows/clone-gate.yml
+          test -f candidate/.github/workflows/bootstrap-recovery.yml
+          test ! -e candidate/.github/workflows/push-reminders.yml
+          test ! -e candidate/.github/workflows/deploy-core-worker.yml
       - name: Commit exact tested recovery tree
         working-directory: candidate
         shell: bash
@@ -113,6 +126,7 @@ jobs:
           git config user.name 'FIEZEL Recovery Bot'
           git config user.email 'recovery-bot@users.noreply.github.com'
           git add -A
+          git diff --cached --quiet .github/workflows && echo 'clone workflows unchanged in candidate commit'
           git commit -m 'FIEZEL CLONE R1: recover known-good neural baseline with isolated state and cache'
           echo "RECOVERY_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Push tested recovery branch
