@@ -44,11 +44,12 @@ jobs:
             -not -path './node_modules/*' \
             -not -path './vendor/*' \
             -print0)
-      - name: Execute canonical Quality commands
+      - name: Execute recovery Quality commands
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t commands < <(sed -n '/- name: Core validation/,$p' .github/workflows/quality.yml | sed -n 's/^[[:space:]]*\(node .*$\)/\1/p')
+          test -f recovery-quality.yml
+          mapfile -t commands < <(sed -n '/- name: Core validation/,$p' recovery-quality.yml | sed -n 's/^[[:space:]]*\(node .*$\)/\1/p')
           test "${#commands[@]}" -ge 56
           for cmd in "${commands[@]}"; do
             echo "::group::$cmd"
@@ -64,6 +65,8 @@ jobs:
           test ! -e features/tutor-classroom/fiezel-tutor-indonesian-voice-fix.js
           grep -q 'fiezel-clone-v' sw.js
           grep -q 'fiezel-clone-v4-state' app.js
+          test ! -e .github/workflows/push-reminders.yml
+          test ! -e .github/workflows/deploy-core-worker.yml
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && hashFiles('FIEZEL-CLONE-SOURCE-LOCK.json') != ''
