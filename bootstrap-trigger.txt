@@ -1,1 +1,1 @@
-Trigger the OWNER-directed FIEZEL CLONE R1 materialization run. Retry 2 uses the checksummed eight-part recovery overlay transport after the single-file base64 transport was proven truncated.
+Trigger the OWNER-directed FIEZEL CLONE R1 materialization run. Retry 3 preserves only clone-owned workflows, freezes the tested Quality command manifest as a normal file, and prevents production deployment/reminder workflows from entering the recovery commit.
