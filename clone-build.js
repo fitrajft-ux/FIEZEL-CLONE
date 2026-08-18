@@ -1,1 +1,1 @@
-self.FIEZEL_CLONE=true;self.FIEZEL_CLONE_BUILD='clone-r2-spatial-dock-apps-sync-20260818-1';
+self.FIEZEL_CLONE=true;self.FIEZEL_CLONE_BUILD='clone-r2-hotfix-taskbar-id-voice-20260819-1';
