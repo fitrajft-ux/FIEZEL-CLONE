@@ -43,7 +43,7 @@ for(const asset of [
   './features/spatial-dock/spatial-dock-hotfix.css',
   './features/spatial-dock/spatial-dock-hotfix.js'
 ]) assert.ok(SW.includes("'"+asset+"'"),`hotfix shell asset not precached: ${asset}`);
-assert.match(SW,/SW_REV='m025-30-hotfix-taskbar-id-voice-20260819-1'/,'hotfix must have a distinct shell revision');
+assert.match(SW,/SW_REV='m025-30-indonesian-natural-beta-20260819-1'/,'current release must have a distinct Natural Beta shell revision');
 assert.match(SW,/sherpa-vits-id/,'optional Indonesian neural bundle must be classified by the stable neural cache path');
 assert.match(SW,/const CACHE=`fiezel-clone-v\$\{self\.FIEZEL_VERSION\}`/,'stable neural cache identity must remain unchanged');
 

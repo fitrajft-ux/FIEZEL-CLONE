@@ -84,3 +84,5 @@ jobs:
           node neural-voice-m02526-sherpa-engine-test.js
           node puter-auth-coop-test.js
           node puter-auth-diagnostics-test.js
+          node spatial-dock-m02531-regression-test.js
+          node tests/indonesian-human-prosody-lab-test.js
