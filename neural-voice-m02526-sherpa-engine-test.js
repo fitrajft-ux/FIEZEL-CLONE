@@ -126,18 +126,18 @@ const ADAPTER_PATH = 'features/neural-voice/fiezel-sherpa-vits-adapter.js';
     'no en-GB locale may be advertised for an en_US-only model');
 
   // --- release markers ----------------------------------------------------------
-  // Engine invariants remain pinned across shell releases. Active diagnostic and
-  // service-worker release markers must advance together, while the known-good
-  // recovery lineage remains explicitly preserved for rollback/recovery evidence.
+  // Keep this historical m025-26 CLONE-engine regression valid across later product
+  // releases. Only release identity becomes dynamic; the five-file/six-voice CLONE
+  // neural invariants above intentionally remain different from APPS neural.
   const diag = fs.readFileSync('features/neural-voice/fiezel-diag-panel.js', 'utf8');
-  const diagBuild = diag.match(/DIAG_BUILD\s*=\s*'(m025-\d+)'/)?.[1];
-  const swBuild = SW.match(/SW_REV='(m025-\d+)-/)?.[1];
-  assert.ok(diagBuild, 'DIAG_BUILD must remain parseable');
-  assert.ok(swBuild, 'SW_REV build must remain parseable');
-  assert.strictEqual(diagBuild, swBuild,
-    'diagnostics and service-worker active release marker must stay coherent');
-  assert.strictEqual(diagBuild, 'm025-30',
-    'Spatial Dock/APPS sync release must stay on m025-30');
+  const diagBuild = diag.match(/DIAG_BUILD\s*=\s*'m025-(\d+)'/);
+  const swBuild = SW.match(/SW_REV='m025-(\d+)-/);
+  assert.ok(diagBuild, 'Diagnostics deployment marker must exist');
+  assert.ok(swBuild, 'Service-worker deployment marker must exist');
+  assert.strictEqual(swBuild[1], diagBuild[1],
+    'DIAG_BUILD and SW_REV must identify the same product build');
+  assert.ok(Number(diagBuild[1]) >= 26,
+    'later releases must not regress behind the m025-26 CLONE engine boundary');
   assert.match(SW,
     /RECOVERY_BASELINE_MARKER='m025-29-clone-r1-known-good-neural-20260818-1'/,
     'recovery lineage marker must remain preserved');
