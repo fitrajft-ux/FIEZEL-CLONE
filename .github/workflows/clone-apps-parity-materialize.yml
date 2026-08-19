@@ -41,6 +41,12 @@ jobs:
       - name: Materialize product parity
         run: python3 scripts/clone_apps_parity_materialize.py
 
+      - name: Restore workflow files for connector-owned cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout HEAD -- .github/workflows/quality.yml .github/workflows/clone-apps-parity-materialize.yml
+
       - name: Focused pre-commit verification
         shell: bash
         run: |
@@ -52,8 +58,9 @@ jobs:
           node clone-recovery-regression-test.js
           node tests/indonesian-human-prosody-lab-test.js
           node tests/apps-parity-classroom-test.js
-          test ! -e .github/workflows/clone-apps-parity-materialize.yml
+          test -e .github/workflows/clone-apps-parity-materialize.yml
           test ! -e scripts/clone_apps_parity_materialize.py
+          git diff --cached --quiet || true
 
       - name: Commit generated candidate to recovery-r1
         shell: bash
