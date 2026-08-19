@@ -71,7 +71,7 @@ assert.ok(!stable.includes('supertonic-3'),'stable Indonesian bridge must remain
 const hotfixAt=index.indexOf('./features/spatial-dock/spatial-dock-hotfix.js');
 const labAt=index.indexOf('./features/neural-voice/fiezel-indonesian-human-prosody-lab.js');
 assert.ok(hotfixAt>=0&&labAt>hotfixAt,'Natural Beta must load after the stable Spatial Classroom runtime');
-assert.match(sw,/SW_REV='m025-32-indonesian-natural-beta-20260819-1'/);
+assert.match(sw,/SW_REV='m025-30-indonesian-natural-beta-20260819-1'/);
 assert.ok(sw.includes("'./features/neural-voice/fiezel-indonesian-human-prosody-lab.js'"),'Natural Beta shell file must be revisioned/pre-cached');
 assert.ok(!sw.includes("'/FIEZEL-APPS/vendor/supertonic-3/"),'CLONE shell must not duplicate the Supertonic model bundle');
 
