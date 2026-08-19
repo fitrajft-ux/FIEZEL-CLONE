@@ -14,7 +14,7 @@ function makeEnv({standalone=false,policy=''}={}){
     _data:data
   };
 }
-function diagnostics(env){return JSON.parse(env._data['fiezel-neural-voice-diagnostics-v1']||'[]')}
+function diagnostics(env){return JSON.parse(env._data['fiezel-clone-neural-voice-diagnostics-v1']||'[]')}
 function config(){return{voices:{fiezelPrimary:'af_heart'},limits:{maxInputChars:3600,targetChunkWords:140,hardChunkWords:190},fallback:{browserSpeechSynthesis:false}}}
 
 (async()=>{
@@ -93,17 +93,17 @@ function config(){return{voices:{fiezelPrimary:'af_heart'},limits:{maxInputChars
   assert.match(audibility,/Suara neural sedang bermasalah\. Audio sementara memakai suara perangkat/);
   assert.match(audibility,/phase:'fallback_notice'/);
 
-  // Historical m025-24 timeout behavior must remain valid across later product releases.
-  // Deployment identity is therefore checked for current coherence, not frozen to the
-  // release number that happened to exist when this regression was first authored.
+  // Historical m025-24 behavior remains a CLONE neural invariant across later
+  // product releases. Only the active deployment identity advances with the shell.
   const diag=fs.readFileSync('features/neural-voice/fiezel-diag-panel.js','utf8');
   const sw=fs.readFileSync('sw.js','utf8');
-  const diagBuild=diag.match(/DIAG_BUILD\s*=\s*'m025-(\d+)'/);
-  const swBuild=sw.match(/SW_REV='m025-(\d+)-/);
-  assert.ok(diagBuild,'Diagnostics deployment marker must exist');
-  assert.ok(swBuild,'Service-worker deployment marker must exist');
-  assert.equal(swBuild[1],diagBuild[1],'DIAG_BUILD and SW_REV must identify the same product build');
-  assert.ok(Number(diagBuild[1])>=24,'later releases must not regress behind the m025-24 boundary');
+  const diagBuild=diag.match(/DIAG_BUILD\s*=\s*'(m025-\d+)'/)?.[1];
+  const swBuild=sw.match(/SW_REV='(m025-\d+)-/)?.[1];
+  assert.ok(diagBuild,'DIAG_BUILD must remain parseable');
+  assert.ok(swBuild,'SW_REV build must remain parseable');
+  assert.equal(diagBuild,swBuild,'diagnostics marker must match active SW release build');
+  assert.ok(Number(diagBuild.replace('m025-',''))>=24,'later releases must not regress behind the m025-24 CLONE neural boundary');
+  assert.match(sw,/RECOVERY_BASELINE_MARKER='m025-29-clone-r1-known-good-neural-20260818-1'/);
 
   console.log('FIEZEL m025-24 proxy timeout recovery regression: PASS');
 })().catch(error=>{console.error(error.stack||error);process.exitCode=1});
