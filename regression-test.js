@@ -27,7 +27,10 @@ assert(/flash-inner/.test(app)&&/rotateY/.test(css),'3D flip implementation miss
 assert(!/id="previous"/.test(app)&&!/id="next"/.test(app.split('function flashcards')[1]?.split('function reviewVocab')[0]||''),'flashcards still expose previous/next buttons');
 assert(/function getDiagnosticProfile/.test(app)&&/weakTargets/.test(app),'adaptive diagnostic profile missing');
 assert(/function setConfidence/.test(app)&&/confidenceHistory/.test(app),'confidence calibration missing');
-assert(/function dailyBrief/.test(app)&&/RINGKASAN HARI INI/.test(app),'daily learning brief missing');
+// m025-46: the brief is pinned by what renders it, not by a shouting copy string.
+// The all-caps kicker was removed as a design decision; the ring, the target and the
+// function are the feature. This is a stricter marker than the label it replaces.
+assert(/function dailyBrief/.test(app)&&/mission-ring/.test(app)&&/MEANINGFUL_ATTEMPTS/.test(app),'daily learning brief missing');
 assert(/Peta Belajar & Lab/.test(app)&&/Lab Kesalahan/.test(app)&&/Linimasa Kelemahan/.test(app),'learning map/labs missing');
 assert(/Jaringan Kekeliruan Kosakata/.test(app)&&/Peta Skill Reading/.test(app),'skill/confusion maps missing');
 assert(/Laporan Diagnostik/.test(app)&&/Dibuat oleh Fitrarustqi/.test(app),'diagnostic/creator product surface missing');
@@ -103,6 +106,5 @@ setTimeout(()=>{
   assert(readingGenerated.every(q=>q.passage?.text),'some generated reading questions lack passage text');
   console.log('FIEZEL regression checks: PASS');
   console.log(JSON.stringify({adaptive:adaptive.length,placement:placement.length,placementDifficulty:difficulty,levelSourceCounts:levelCounts,newUserReviewDue:0,adaptiveLockedBeforeDiagnosis:true,readingPassageAttached:true}));
-  process.exit(0);
- }catch(e){console.error('FIEZEL regression checks: FAIL\n'+e.stack);process.exit(1)}
+ }catch(e){console.error('FIEZEL regression checks: FAIL\n'+e.stack);process.exitCode=1}
 },180);

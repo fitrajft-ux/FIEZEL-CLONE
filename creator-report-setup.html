@@ -45,7 +45,7 @@
   <script src="https://js.puter.com/v2/"></script>
   <script>
     (function(){
-      var WORKER_NAME=localStorage.getItem('fiezel-clone-creator-worker-name')||'';
+      var WORKER_NAME=localStorage.getItem('fiezel-creator-worker-name')||'';
       var SOURCE_PATH='fiezel-creator-hub-worker.js';
       var endpoint='';
       var deploy=document.getElementById('deploy');
@@ -57,11 +57,11 @@
       }
       function saveEndpoint(url){
         var current={};
-        try{current=JSON.parse(localStorage.getItem('fiezel-clone-v4-state')||'{}')}catch{}
+        try{current=JSON.parse(localStorage.getItem('fiezel-v4-state')||'{}')}catch{}
         current.preferences=Object.assign({haptics:true,soundtrack:true,motion:true,reportConsent:false},current.preferences||{},{reportEndpoint:url});
         current.reportMeta=Object.assign({lastSentAnswered:0,lastSentAt:0,lastStatus:'not_configured',lastReceipt:'',lastAccessReportDay:'',queue:[]},current.reportMeta||{},{lastStatus:'ready'});
-        localStorage.setItem('fiezel-clone-v4-state',JSON.stringify(current));
-        localStorage.setItem('fiezel-clone-creator-endpoint',url);
+        localStorage.setItem('fiezel-v4-state',JSON.stringify(current));
+        localStorage.setItem('fiezel-creator-endpoint',url);
       }
       deploy.addEventListener('click',async function(){
         deploy.disabled=true;actions.classList.remove('show');show('Membuka sesi creator…');
@@ -85,7 +85,7 @@
           endpoint=String(worker.url||'').replace(/\/+$/,'');
           if(!/^https:\/\/[^/]+\.puter\.work$/i.test(endpoint))throw new Error('URL Worker tidak valid: '+endpoint);
           saveEndpoint(endpoint);
-          localStorage.setItem('fiezel-clone-creator-worker-name',WORKER_NAME);
+          localStorage.setItem('fiezel-creator-worker-name',WORKER_NAME);
           status.className='status show ok';
           status.innerHTML='Creator Hub aktif dan tersambung pada perangkat ini.<span class="endpoint"></span>';
           status.querySelector('.endpoint').textContent=endpoint;

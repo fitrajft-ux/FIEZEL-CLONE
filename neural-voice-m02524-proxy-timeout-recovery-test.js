@@ -93,9 +93,8 @@ function config(){return{voices:{fiezelPrimary:'af_heart'},limits:{maxInputChars
   assert.match(audibility,/Suara neural sedang bermasalah\. Audio sementara memakai suara perangkat/);
   assert.match(audibility,/phase:'fallback_notice'/);
 
-  // Active release identity must stay coherent across diagnostics and the service
-  // worker. The prior m025-29 recovery marker remains present as lineage evidence,
-  // while the Spatial Dock + APPS sync release advances the active shell to m025-30.
+  // Historical m025-24 behavior remains a CLONE neural invariant across later
+  // product releases. Only the active deployment identity advances with the shell.
   const diag=fs.readFileSync('features/neural-voice/fiezel-diag-panel.js','utf8');
   const sw=fs.readFileSync('sw.js','utf8');
   const diagBuild=diag.match(/DIAG_BUILD\s*=\s*'(m025-\d+)'/)?.[1];
@@ -103,7 +102,7 @@ function config(){return{voices:{fiezelPrimary:'af_heart'},limits:{maxInputChars
   assert.ok(diagBuild,'DIAG_BUILD must remain parseable');
   assert.ok(swBuild,'SW_REV build must remain parseable');
   assert.equal(diagBuild,swBuild,'diagnostics marker must match active SW release build');
-  assert.equal(diagBuild,'m025-30','Spatial Dock/APPS sync release must be m025-30');
+  assert.ok(Number(diagBuild.replace('m025-',''))>=24,'later releases must not regress behind the m025-24 CLONE neural boundary');
   assert.match(sw,/RECOVERY_BASELINE_MARKER='m025-29-clone-r1-known-good-neural-20260818-1'/);
 
   console.log('FIEZEL m025-24 proxy timeout recovery regression: PASS');

@@ -1,1 +1,2 @@
-self.FIEZEL_CLONE=true;self.FIEZEL_CLONE_BUILD='clone-r2-hotfix-taskbar-id-voice-20260819-1';
+self.FIEZEL_CLONE_BUILD='clone-r3-apps-parity-natural-beta-20260819-1';
+self.FIEZEL_CLONE_APPS_SOURCE='d27046c9ab85654b9e0ea0520e9360643130ce49';
