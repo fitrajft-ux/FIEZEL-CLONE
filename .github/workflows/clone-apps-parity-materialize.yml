@@ -1,0 +1,68 @@
+name: MATERIALIZE CLONE APPS Parity
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.head_ref == 'recovery-r1' && contains(github.event.pull_request.title, 'MATERIALIZE')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact CLONE release lane
+        uses: actions/checkout@v4
+        with:
+          ref: recovery-r1
+          fetch-depth: 0
+
+      - name: Checkout exact APPS source read-only
+        uses: actions/checkout@v4
+        with:
+          repository: fitrajft-ux/FIEZEL-APPS
+          ref: d27046c9ab85654b9e0ea0520e9360643130ce49
+          path: _apps
+          persist-credentials: false
+
+      - name: Verify staging boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git merge-base HEAD origin/main)" = '0aba4a5f9f3f4ec4511dee2698f811107e5a7198'
+          test "$(git -C _apps rev-parse HEAD)" = 'd27046c9ab85654b9e0ea0520e9360643130ce49'
+          actual="$(git diff --name-only origin/main...HEAD | sort | tr '\n' ' ')"
+          expected='.github/workflows/clone-apps-parity-materialize.yml scripts/clone_apps_parity_materialize.py '
+          test "$actual" = "$expected"
+
+      - name: Materialize product parity
+        run: python3 scripts/clone_apps_parity_materialize.py
+
+      - name: Focused pre-commit verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _apps
+          node --check app.js
+          node --check features/tutor-classroom/fiezel-tutor-v3.js
+          node --check features/neural-voice/fiezel-indonesian-human-prosody-lab.js
+          node clone-recovery-regression-test.js
+          node tests/indonesian-human-prosody-lab-test.js
+          node tests/apps-parity-classroom-test.js
+          test ! -e .github/workflows/clone-apps-parity-materialize.yml
+          test ! -e scripts/clone_apps_parity_materialize.py
+
+      - name: Commit generated candidate to recovery-r1
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'fitrarustqi'
+          git config user.email 'fitrajft@gmail.com'
+          git add -A
+          git status --short
+          git diff --cached --quiet && { echo 'materializer produced no candidate'; exit 1; }
+          git commit -m '[5.19.0] T-025 materialize APPS parity with CLONE Natural Beta'
+          git push origin HEAD:recovery-r1
