@@ -51,9 +51,9 @@
       var status=document.getElementById('status');
       var loadButton=document.getElementById('load');
       var csvButton=document.getElementById('csv');
-      var stored=localStorage.getItem('fiezel-clone-creator-endpoint')||'';
+      var stored=localStorage.getItem('fiezel-creator-endpoint')||'';
       try{
-        var appState=JSON.parse(localStorage.getItem('fiezel-clone-v4-state')||'{}');
+        var appState=JSON.parse(localStorage.getItem('fiezel-v4-state')||'{}');
         stored=stored||(appState.preferences&&appState.preferences.reportEndpoint)||'';
       }catch{}
       endpointInput.value=stored;
@@ -110,7 +110,7 @@
           var response=await puter.workers.exec(endpoint+'/api/reports',{method:'GET'});
           var data=await response.json();
           if(!response.ok||data.ok===false)throw new Error(data.error||'Creator Hub merespons '+response.status);
-          localStorage.setItem('fiezel-clone-creator-endpoint',endpoint);
+          localStorage.setItem('fiezel-creator-endpoint',endpoint);
           render(data);status.className='status';status.textContent='Sinkron terakhir '+reportDate(new Date().toISOString())+'. Auto-refresh aktif setiap 60 detik.';
         }catch(error){
           status.className='status error';status.textContent='Laporan tidak dapat dimuat: '+String(error&&error.message||error);

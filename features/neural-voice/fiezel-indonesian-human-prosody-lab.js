@@ -10,12 +10,12 @@
 (function(root,factory){
   var api=factory(root||{});
   if(typeof module==='object'&&module.exports)module.exports=api;
-  else if(root){root.FiezelIndonesianProsodyLab=api;root.FiezelIndonesianExpressiveVoice=api;api.install();}
+  else if(root){root.FiezelIndonesianProsodyLab=api;root.FiezelIndonesianExpressiveVoice=api;root.FiezelIndonesianVoice=api;api.install();}
 }(typeof globalThis!=='undefined'?globalThis:this,function(root){
   'use strict';
 
   var VERSION='exp-id-human-prosody-v2';
-  var SOURCE_SHA='480f8bb707ee9ec36b25b08ceefc2fe2f03c463e';
+  var SOURCE_SHA='d27046c9ab85654b9e0ea0520e9360643130ce49';
   var MODEL_ID='supertonic-3-int8-2026-05-11';
   var EXPECTED_SPEAKERS=10;
   var GENERATION_STEPS=4;
@@ -56,7 +56,7 @@
     progressListeners.slice().forEach(function(fn){try{fn(payload);}catch(_){}});
     try{root.dispatchEvent&&root.dispatchEvent(new CustomEvent('fiezel-indonesian-natural-progress',{detail:payload}));}catch(_){}
   }
-  function enabled(){try{return root.localStorage&&root.localStorage.getItem(ENABLE_KEY)==='1';}catch(_){return false;}}
+  function enabled(){try{var v=root.localStorage&&root.localStorage.getItem(ENABLE_KEY);return v!=='0';}catch(_){return true;}}
   function setEnabled(value){try{root.localStorage&&root.localStorage.setItem(ENABLE_KEY,value?'1':'0');}catch(_){}diag({phase:'natural_beta_toggle',enabled:!!value});refreshUi();return !!value;}
   function classify(text){
     var line=clean(text),words=line?line.split(/\s+/).length:0;
@@ -163,6 +163,7 @@
     return service;
   }
   async function prepare(options){
+    setEnabled(true);
     var opts=options||{},listener=typeof opts.onProgress==='function'?opts.onProgress:null;if(listener)progressListeners.push(listener);lastError='';
     try{await preflight();await initialize();diag({phase:'natural_beta_ready'});return status();}
     catch(error){lastError=String(error&&error.message||error);diag({phase:'natural_beta_error',error:lastError});throw error;}
@@ -171,10 +172,10 @@
   async function speak(text,options){var live=await initialize(),opts=options||{},line=clean(text);if(!line)return{provider:'supertonic-3-clone-lab',skipped:true};return live.speak(line,{voice:'id_natural',speed:typeof opts.speed==='number'?opts.speed:1,lang:'id-ID',allowFallback:false});}
   function stop(){try{service&&service.stop&&service.stop();}catch(_){}try{adapterRef&&adapterRef.stop&&adapterRef.stop();}catch(_){}try{player&&player.stop&&player.stop();}catch(_){} }
   async function release(){stop();try{adapterRef&&adapterRef.release&&adapterRef.release();}catch(_){}adapterRef=null;service=null;player=null;}
-  function status(){return Object.freeze({version:VERSION,engine:'supertonic-3',model:MODEL_ID,sourceSha:SOURCE_SHA,language:'id-ID',experimental:true,optIn:true,enabled:enabled(),ready:!!service,error:lastError,totalBytes:TOTAL_BYTES,assetCount:ASSETS.length,generationSteps:GENERATION_STEPS,numThreads:1,pitchResample:false});}
+  function status(){return Object.freeze({version:VERSION,engine:'supertonic-3',model:MODEL_ID,sourceSha:SOURCE_SHA,language:'id-ID',experimental:true,optIn:false,enabled:enabled(),prepared:preflightDone,ready:!!service,error:lastError,totalBytes:TOTAL_BYTES,assetCount:ASSETS.length,generationSteps:GENERATION_STEPS,numThreads:1,pitchResample:false});}
 
-  function classroomActive(){try{return !!(root.document&&root.document.querySelector('.sd-classroom'));}catch(_){return false;}}
-  function indonesianText(fallback){try{var n=root.document&&root.document.getElementById('sdSubtitle'),t=n&&clean(n.textContent);return t||clean(fallback);}catch(_){return clean(fallback);}}
+  function classroomActive(){try{return !!(root.document&&root.document.querySelector('.classroom-v3'));}catch(_){return false;}}
+  function indonesianText(fallback){try{var n=root.document&&root.document.getElementById('tutorSubtitle'),t=n&&clean(n.textContent);return t||clean(fallback);}catch(_){return clean(fallback);}}
   function patchRuntime(){
     var base=root.FiezelVoiceRuntime;if(!base||typeof base.speak!=='function'||base.__indonesianNaturalBetaPatched)return false;
     var wrapped=Object.assign({},base,{
