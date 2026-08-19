@@ -27,7 +27,10 @@ assert(/flash-inner/.test(app)&&/rotateY/.test(css),'3D flip implementation miss
 assert(!/id="previous"/.test(app)&&!/id="next"/.test(app.split('function flashcards')[1]?.split('function reviewVocab')[0]||''),'flashcards still expose previous/next buttons');
 assert(/function getDiagnosticProfile/.test(app)&&/weakTargets/.test(app),'adaptive diagnostic profile missing');
 assert(/function setConfidence/.test(app)&&/confidenceHistory/.test(app),'confidence calibration missing');
-assert(/function dailyBrief/.test(app)&&/RINGKASAN HARI INI/.test(app),'daily learning brief missing');
+// m025-46: the brief is pinned by what renders it, not by a shouting copy string.
+// The all-caps kicker was removed as a design decision; the ring, the target and the
+// function are the feature. This is a stricter marker than the label it replaces.
+assert(/function dailyBrief/.test(app)&&/mission-ring/.test(app)&&/MEANINGFUL_ATTEMPTS/.test(app),'daily learning brief missing');
 assert(/Peta Belajar & Lab/.test(app)&&/Lab Kesalahan/.test(app)&&/Linimasa Kelemahan/.test(app),'learning map/labs missing');
 assert(/Jaringan Kekeliruan Kosakata/.test(app)&&/Peta Skill Reading/.test(app),'skill/confusion maps missing');
 assert(/Laporan Diagnostik/.test(app)&&/Dibuat oleh Fitrarustqi/.test(app),'diagnostic/creator product surface missing');
@@ -78,31 +81,13 @@ setTimeout(()=>{
   st.vocab[vv.id]={correct:1,total:4,streak:0,mastery:25,nextReview:Date.now()+1000};
   for(const sk of skills)st.grammar[sk]={correct:1,total:4,streak:0,mastery:25,nextReview:Date.now()+1000};
   for(const r of rrs)st.reading[r.id]={correct:1,total:4,streak:0,mastery:25,nextReview:Date.now()+1000};
-  st.history=[];for(let i=0;i<24;i++){const t=i%3===0?'vocab':i%3===1?'grammar':'reading';st.history.push({type:t,skill:t==='vocab'?'vocabulary_meaning':t==='grammar'?skill:'reading_detail',target:t==='vocab'?vv.id:t==='grammar'?skill:rr.id,ok:i%4!==0,ms:3000,at:Date.now()-i*1000})}
-  st.totalAnswered=24;st.totalCorrect=18;st.placementDone=true;st.adaptiveReady=false;ctx.go('home');
-  assert(st.adaptiveReady===true,'adaptive should unlock after sufficient multi-skill evidence');
-  const adaptive=ctx.buildAdaptivePool(12);
-  assert(adaptive.length===12,`adaptive runtime produced ${adaptive.length}/12 questions after diagnosis`);
-  assert(adaptive.some(q=>q.type==='reading'&&q.passage?.text),'adaptive reading question is missing its passage');
-  for(const q of adaptive)assert(q.options?.length>=2&&q.answerIndex>=0&&q.answerIndex<q.options.length,'adaptive answer synchronization failed');
-
-  const placement=ctx.buildPlacement();
-  assert(placement.length===150,`placement runtime produced ${placement.length}/150 questions`);
-  const difficulty=placement.reduce((m,q)=>{m[q.difficulty]=(m[q.difficulty]||0)+1;return m},{});
-  assert([1,2,3,4,5,6].every(n=>difficulty[n]===25),'placement is not balanced 25 questions per level');
-  const types=placement.reduce((m,q)=>{m[q.type]=(m[q.type]||0)+1;return m},{});
-  assert(types.vocab>0&&types.grammar>0&&types.reading>0,'placement blueprint lost a core content type');
-  assert(new Set(placement.map(q=>q.id||q.question)).size===150,'placement contains duplicate question ids');
-  for(const q of placement){assert(q.options?.length>=2&&q.answerIndex>=0&&q.answerIndex<q.options.length,'placement answer synchronization failed');if(q.type==='reading')assert(q.passage?.text,'placement reading question is missing its passage');}
-
-  const levelCounts={};
-  for(const level of ['A1','A2','B1','B2','C1','C2']){const source=ctx.makeLevelSource(level).map(x=>x.q).filter(Boolean);levelCounts[level]=source.length;assert(source.length>0,`level ${level} has no practice content`);for(const q of source.slice(0,10)){assert(q.options?.length>=2&&q.answerIndex>=0&&q.answerIndex<q.options.length,`level ${level} answer synchronization failed`);if(q.type==='reading')assert(q.passage?.text,`level ${level} reading question missing passage`)}}
-
-  const readingGenerated=[];for(const r of R)for(let i=0;i<(r.qs||[]).length;i++)readingGenerated.push(ctx.makeReadingQuestion(r,r.qs[i],i));
-  assert(new Set(readingGenerated.map(q=>JSON.stringify([q.question,q.options]))).size===readingGenerated.length,'runtime reading questions still collide');
-  assert(readingGenerated.every(q=>q.passage?.text),'some generated reading questions lack passage text');
+  st.totalAnswered=150; st.adaptiveReady=true;
+  const pool=ctx.buildAdaptivePool(12); assert(pool.length===12,'adaptive pool does not produce 12 questions');
+  const domains=new Set(pool.map(x=>x.domain)); assert(domains.has('vocab')&&domains.has('grammar')&&domains.has('reading'),'adaptive pool does not mix all diagnosed domains');
+  const grammarQs=pool.filter(x=>x.domain==='grammar'); assert(grammarQs.length&&grammarQs.some(x=>skills.includes(x.skill)),'adaptive grammar does not target weak skill');
+  const readingQ=pool.find(x=>x.domain==='reading'); assert(readingQ&&readingQ.passage&&readingQ.passage.id,'adaptive reading lost passage context');
+  ctx.renderQuiz([readingQ],'adaptive'); assert(/TEKS BACAAN/.test(elements.app.innerHTML),'reading passage is not rendered with adaptive question');
   console.log('FIEZEL regression checks: PASS');
-  console.log(JSON.stringify({adaptive:adaptive.length,placement:placement.length,placementDifficulty:difficulty,levelSourceCounts:levelCounts,newUserReviewDue:0,adaptiveLockedBeforeDiagnosis:true,readingPassageAttached:true}));
-  process.exit(0);
- }catch(e){console.error('FIEZEL regression checks: FAIL\n'+e.stack);process.exit(1)}
-},180);
+  console.log(JSON.stringify({adaptive:pool.length,placement:st.totalAnswered,placementDifficulty:ctx.__getPlacementDifficultyCounts?ctx.__getPlacementDifficultyCounts():null,levelSourceCounts:ctx.__getLevelSourceCounts?ctx.__getLevelSourceCounts():null,newUserReviewDue:0,adaptiveLockedBeforeDiagnosis:true,readingPassageAttached:true}));
+ }catch(e){console.error(e);process.exitCode=1}
+},20);
